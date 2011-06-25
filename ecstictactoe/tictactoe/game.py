@@ -11,47 +11,61 @@ import copy
 play={'board':[['','',''],['','',''],['','','']],
     'key': 2323, # anti-cheat key
     }
+
+# status types for board moved
+DONE = 'Done' # game is over
+FINAL = 'Final' # one move left make it
+EMPTY = 'Empty' # board is empty
+ONCHECK = 'OnCheck' # Opponent has been check make winning move
+CHECKED = 'Checked' # Currently Checked
+UNKNOWN = 'Unknown' # unknown status
 class TicTacToe:
     'computer is X, player is O'
-    # status types for board moved
-    DONE = 'Done' # game is over
-    FINAL = 'Final' # one move left make it
-    EMPTY = 'Empty' # board is empty
-    ONCHECK = 'OnCheck' # Opponent has been check make winning move
-    CHECKED = 'Checked' # Currently Checked
     def __init__(self, play=None):
-        self.board=[['','','']['','','']['','','']]
-        if play and isValidBoard(play):
+        self.board=[['','',''],['','',''],['','','']]
+        if play and self.isValidBoard(play)[0]:
             self.board=copy.deepcopy(play['board'])
         
     @staticmethod
     def isValidBoard(play):
         '''check that board from user is valid,
-        return: Bool
+        return: Bool, 'Error Message'
         '''        
         try:
+            ocount = 0
+            xcount = 0
             board=play['board']
             if len(board) != 3:
-                return False
+                return False, 'Row count invalid'
             for row in board:
                 if len(row) !=3:
-                    return False
-                
+                    return False, 'Cell count invalid'
+                # check cell values
                 for cell in row:
                     if cell not in ['X','O','']:
-                        return False
-            
+                        return False, 'Invalid cell value'
+                    if cell == 'X':
+                        xcount += 1
+                    if cell == 'O':
+                        ocount += 1
+            # move count must be valid
+            if(ocount-xcount>1 or ocount-xcount<0):
+                return False, 'Can not have a double move'
             if play['key'] != 2323:
-                return False
+                return False, 'incomplete message'
         except:
-            return False
-        return True
+            return False, 'incomplete message'
+        return True, 'Ok'
+    
     def anyMove(self):
         ''' perform any move'''
         for irow in range(3):
             for icell in range(3):
                 if self.board[irow][icell] == '':
                     self.board[irow][icell] = 'X'
+                    return
+        raise "anyMove failed to find emty cell"
+    
     def checkMove(self):
         'perform winning move'
         self.anyMove()
@@ -61,25 +75,32 @@ class TicTacToe:
         self.anyMove()
                             
     def calcCounts(self):
+        'compute data counts'
         self.emptyCounts=0
         for row in self.board:
             for cell in row:
                 if cell == '':
                     self.emptyCounts += 1
                 
-    def status(self):
+    def updateStatus(self):
         '''determine status'''
+        
         self.calcCounts()
+        
+        self.status = UNKNOWN
+        
         if self.emptyCounts == 0:
             self.status = EMPTY
         elif self.emptyCounts == 1:
             self.status = FINAL
         elif self.emptyCounts == 1:
             self.status = FINAL
-                
+        
         
     def move(self):
         '''perform computer move'''
+        self.updateStatus()
+                
         if self.status == EMPTY:
             self.anyMove()
         elif self.status == FINAL:
@@ -90,7 +111,8 @@ class TicTacToe:
             self.blockMove()
         else:
             self.anyMove()
-
+        # update counts
+        self.calcCounts()
 
     def getPlay(self):
         'get current play'
@@ -98,6 +120,7 @@ class TicTacToe:
    
     def __str__(self):
         def emptyToSpace(s):
+            'convert "" to space, and and some space'
             if (s == ''):
                 return '   '
             else:
