@@ -1,16 +1,17 @@
+# Tic-tac-Toe 
+# javascript
+# 2011 Eric Schug
+# 
 from django.conf.urls.defaults import *
+
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
-# admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Example:
-    # (r'^ecstictactoe/', include('ecstictactoe.foo.urls')),
+    # board
+    (r'^$', 'ecstictactoe.tictactoe.views.game'),
+    # move (ajax)
+    (r'^move/$', 'ecstictactoe.tictactoe.views.move'),
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # (r'^admin/', include(admin.site.urls)),
 )
