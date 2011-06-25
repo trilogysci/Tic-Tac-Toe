@@ -1,56 +1,78 @@
 <html>
 <head>
-<title>Tic Tac Toe</title>
+<meta content="text/html; charset=ISO-8859-1"
+http-equiv="content-type" />
 <link rel="stylesheet" href="/static/default.css" type="text/css" />
 <script type="text/javascript" src="/static/tictactoe.js"></script>
+<title>Tic Tac Toe</title>
 </head>
 <body>
-<h1>Tic Tac Toe</h1>
-<p>
-Press the button select a square.
-</p>
-<table style="text-align: left; width: 100px;" border="1"
-cellpadding="2" cellspacing="2">
+<h1>Shall We Play A Game?</h1>
+<h2>THERMONUCLEAR-TIC-TAC-TOE</h2>
+<p>**Human vs Computer**</p>
+<p>Press a button to select a square.</p>
+{% if not play.winner %}
 <form Target="_self" EncType="application/x-www-form-urlencoded"
 Method="GET" Action="{{gameurl}}" Name="Select">
-
+{% csrf_token %}
+<input name="board" value="{{board}}" type="hidden" />
+{% endif %}
+<table class="ttt" border="0"
+cellpadding="2" cellspacing="0">
 <tbody>
-<tr>
-<td>
-x
-</td>
-<td>
-o
-</td>
-<td>
-<button value="" name="cell">O?</button>
-</td>
-</tr>
-<tr>
-<td style="vertical-align: top;">
-x
-</td>
-<td style="vertical-align: top;">
-x
-</td>
-<td style="vertical-align: top;">
-x
-</td>
-</tr>
-<tr>
-<td style="vertical-align: top;">
-x
-</td>
-<td style="vertical-align: top;">
-x
-</td>
-<td style="vertical-align: top;">
-x
-</td>
-</tr>
+{% for row in play.board %}
+    <!--Row = {% cycle '0' '1' '2' as rowname %}-->
+    <tr  class="{% cycle 'ttt-top' 'ttt-middle' 'ttt-bottom' as vertname %}">
+    {% for cell in row %}
+        <!-- Col = {% cycle '0' '1' '2' as colname %}-->
+        <td class="{{vertname}} {% cycle 'ttt-left' 'ttt-center' 'ttt-right' %}">
+        {% ifequal cell '' %}
+            {% if play.winner %}
+            &nbsp;
+                
+            {% else %}
+            <button value="{{rowname}}{{colname}}" name="cell">O?</button>
+            {%endif %}
+        {% else %}
+            {{cell}}
+        {% endifequal %}
+    </td>
+    {% endfor %}
+    </tr>
+{% endfor %}
 </tbody>
 </table>
+<q>{{message}}</q>
+{% if not play.winner %}
 </form>
+<form Target="_self" EncType="application/x-www-form-urlencoded"
+Method="GET" Action="{{gameurl}}" Name="Select">
+<button >Clear</button>
+</form>
+{%endif %}
+<p>
+{% if play.winner %}
+{% ifequal play.winner 'Draw' %}
+Tie Game
+
+{% endifequal %}
+{% ifequal play.winner 'O' %}
+You Win!
+{% endifequal %}
+{% ifequal play.winner 'X' %}
+Computer Won.
+
+{% endifequal %}
+<form Target="_self" EncType="application/x-www-form-urlencoded"
+            Method="GET" Action="{{gameurl}}" Name="Select">
+            <button>Play Again</button>
+            </form>
+{% endif %}
+</p>
+{% if art %}
+<pre id="art">
+{{art}}
+</pre>
+{% endif %}
 </body>
 </html>
-
