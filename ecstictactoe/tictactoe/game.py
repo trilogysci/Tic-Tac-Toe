@@ -5,12 +5,39 @@
 # tictactoe
 
 import copy
+import random
 
 # 'X' is computer
 # 'O' is human
 play={'board':[['','',''],['','',''],['','','']],
     'key': 2323, # anti-cheat key
     }
+
+
+def boardFlip(board):
+    'flip board along the diagonal'
+    return [
+        [board[0][0],board[1][0],board[2][0]],
+        [board[0][1],board[1][1],board[2][1]],
+        [board[0][2],board[1][2],board[2][2]]
+        ]
+
+def boardRotate(board):
+    'rotate the board'
+    return [
+        [board[2][0],board[1][0],board[0][0]],
+        [board[2][1],board[1][1],board[0][1]],
+        [board[2][2],board[1][2],board[0][2]]
+
+        ]
+
+def boardDiagonals(board):
+    'return the board diagonals'
+    return [
+        [board[0][0],board[1][1],board[2][2]],
+        [board[2][0],board[1][1],board[0][2]]
+        ]
+
 
 # status types for board moved
 DONE = 'Done' # game is over
@@ -22,9 +49,12 @@ UNKNOWN = 'Unknown' # unknown status
 class TicTacToe:
     'computer is X, player is O'
     def __init__(self, play=None):
+        self.status = ''
+        self.winner = ''
         self.board=[['','',''],['','',''],['','','']]
         if play and self.isValidBoard(play)[0]:
             self.board=copy.deepcopy(play['board'])
+            self.calcCounts()
         
     @staticmethod
     def isValidBoard(play):
@@ -57,6 +87,68 @@ class TicTacToe:
             return False, 'incomplete message'
         return True, 'Ok'
     
+    @staticmethod
+    def randomBoard():
+        board = []
+        for i in range(3):
+            #build rows of random '', 'X' or 'O'
+            board.append([['', 'X', 'O'][random.randint(0,2)] for j in range(3)])
+        return {'board':copy.deepcopy(board), 'key':2323}
+    
+    def matchPattern(self,pattern):
+        'does the pattern match, after rotations and flips'
+        rpatt=pattern
+        for i in range(4):
+            if rpatt==self.board:
+                return i
+            rpatt=boardRotate(rpatt)
+        rpatt=boardFlip(pattern)
+        for i in range(4):
+            if rpatt==self.board:
+                return i+4
+            rpatt=boardRotate(rpatt)
+        return None
+
+    @staticmethod
+    def transIndex(trans, cellix):
+        'transform cell indices apply flip and rotation'
+        if cellix==(1,1) or trans==0:
+            return cellix
+        cellix_out=(cellix[0],cellix[1])
+        if trans>=4:
+            #flip
+            cellix_out = (cellix_out[1],cellix_out[0])
+            trans=trans-4
+        corners=[(0,0),(2,0),(2,2),(0,2)]
+        sides=[(0,1),(1,0),(2,1),(1,2)]
+        #rotate
+        if cellix_out in corners:
+            # get location and apply rotation
+            idx=(corners.index(cellix_out)-trans)%4
+            cellix_out=corners[idx]
+        elif cellix_out in sides:
+            # get location and apply rotation
+            idx=(sides.index(cellix_out)-trans)%4
+            cellix_out=sides[idx]
+        return cellix_out
+    def getFreeCnt(self):
+        'return number of empty cells'
+        return self.emptyCnt
+    
+    def testUserMove(self, ifree):
+        'generate a user move based on index of empty cells'
+        if (ifree<0 or ifree>=self.emptyCount):
+            raise ValueError('Invalid ifree %d'%ifree)
+        iLoc = 0
+        for irow in range(3):
+            for icell in range(3):
+                if (self.board[irow][icell]==''):
+                    if (ifree==iLoc):
+                        self.board[irow][icell]='O'
+                        return
+                    else:
+                        iLoc+=1
+        self.calcCounts()
     def anyMove(self):
         ''' perform any move'''
         for irow in range(3):
@@ -68,33 +160,139 @@ class TicTacToe:
     
     def checkMove(self):
         'perform winning move'
-        self.anyMove()
+        # find empty cell within the axis
+        # determine which axis is the winning axis
+        for iaxis,cnts in enumerate(self.rowCounts):
+            if cnts == {'X':2,'O':0}:
+                for icell in range(3):
+                    if self.board[iaxis][icell] == '':
+                        self.board[iaxis][icell] = 'X'
+                        self.winner='X'
+                        break
+                return 
+        for iaxis,cnts in enumerate(self.colCounts):
+            if cnts == {'X':2,'O':0}:
+                for icell in range(3):
+                    if self.board[icell][iaxis] == '':
+                        self.board[icell][iaxis] = 'X'
+                        self.winner='X'
+                        break
+                return
+        for iaxis,cnts in enumerate(self.diagCounts):
+            if cnts == {'X':2,'O':0}:
+                if self.board[1][1] == '':
+                    self.board[1][1]='X'
+                    self.winner='X'
+                elif iaxis == 0:
+                    if self.board[0][0] == '':
+                        self.board[0][0] = 'X'
+                        self.winner='X'
+                    elif self.board[2][2] == '':
+                        self.board[2][2] = 'X'
+                        self.winner='X'
+                else:
+                    if self.board[0][2] == '':
+                        self.board[0][2]='X'
+                        self.winner='X'
+                    elif self.board[2][0] == '':
+                        self.board[2][0]='X'
+                        self.winner='X'
+                return
+        #
         
     def blockMove(self):
         'perform a block move'
-        self.anyMove()
+        # find empty cell within the axis
+        # determine which axis is the blocking axis
+        for iaxis,cnts in enumerate(self.rowCounts):
+            if cnts == {'X':0,'O':2}:
+                for icell in range(3):
+                    if self.board[iaxis][icell] == '':
+                        self.board[iaxis][icell] = 'X'
+                        break
+                return
+        for iaxis,cnts in enumerate(self.colCounts):
+            if cnts == {'X':0,'O':2}:
+                for icell in range(3):
+                    if self.board[icell][iaxis] == '':
+                        self.board[icell][iaxis] = 'X'
+                        break
+                return
+        for iaxis,cnts in enumerate(self.diagCounts):
+            if cnts == {'X':0,'O':2}:
+                if self.board[1][1] == '':
+                    self.board[1][1] = 'X'
+                elif iaxis == 0:
+                    if self.board[0][0] == '':
+                        self.board[0][0] = 'X'
+                    elif self.board[2][2] == '':
+                        self.board[2][2] = 'X'
+                else:
+                    if self.board[0][2] == '':
+                        self.board[0][2]='X'
+                    elif self.board[2][0] == '':
+                        self.board[2][0]='X'
+                return
+        # should not get here
                             
     def calcCounts(self):
         'compute data counts'
-        self.emptyCounts=0
+        self.emptyCount=0
         for row in self.board:
             for cell in row:
                 if cell == '':
-                    self.emptyCounts += 1
-                
+                    self.emptyCount += 1
+        # check for axis counts, for each axis determine 'X' and 'O' count
+        self.rowCounts = [{'X':row.count('X'), 'O':row.count('O')} for row in self.board]
+        self.colCounts = [{'X':row.count('X'), 'O':row.count('O')} for row in boardFlip(self.board)]
+        self.diagCounts = [{'X':row.count('X'),'O':row.count('O')} for row in boardDiagonals(self.board)]
+        
     def updateStatus(self):
         '''determine status'''
         
-        self.calcCounts()
+        def unblockedMax(acc,next):
+            '''
+            update max accumulator of
+            unblocked axis iff one player has atleast one and other player has none
+            '''
+            if next['X']>0 and next['O'] == 0:
+                acc['X'] = max(acc['X'],next['X'])
+            elif next['O']>0 and next['X'] == 0:
+                acc['O'] = max(acc['O'],next['O'])
+            return acc
         
+        
+        self.calcCounts()
         self.status = UNKNOWN
         
-        if self.emptyCounts == 0:
+        #merge all axes
+        allCounts=self.rowCounts+self.colCounts+self.diagCounts
+        
+        #find maxes across all axes
+        # 'X' : max # of 'X' with no 'O'
+        # 'O' : max # of 'O' with no 'X'
+        maxes=reduce(unblockedMax, allCounts, {'X':0,'O':0})
+        
+        #determine status
+        if maxes == {'X':3, 'O':3}:
+            #WTF!
+            self.winner = 'Draw'
+            self.status = DONE
+        elif maxes['X'] == 3:
+            self.winner = 'X'
+            self.status = DONE
+        elif maxes['O'] == 3:
+            self.winner = 'O'
+            self.status = DONE
+        elif maxes['X'] == 2:
+            self.status = ONCHECK
+        elif maxes['O'] == 2:
+            self.status = CHECKED
+        elif self.emptyCount == 0:
             self.status = EMPTY
-        elif self.emptyCounts == 1:
+        elif self.emptyCount == 1:
             self.status = FINAL
-        elif self.emptyCounts == 1:
-            self.status = FINAL
+        
         
         
     def move(self):
