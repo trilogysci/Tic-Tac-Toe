@@ -2,3 +2,54 @@
 ** default CSS style
 ** 2011 Eric Schug
 */
+body {
+  font-weight: bold;
+  color: #33cc00;
+  background-color: black;
+  font-size: larger;
+  font-family: "Courier New",Courier,monospace;
+}
+h1 {
+    text-transform: uppercase;
+}
+.ttt {
+    margin: 30px 0px 30px 100px;
+    text-align: center; 
+    border-color: #33cc00;
+}
+.ttt td {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+}
+.ttt-top {
+    border-bottom: 4px solid #33cc00;
+    width: 30px;
+}
+.ttt-middle {
+    border-bottom: 4px solid #33cc00;
+    border-top: 4px solid #33cc00;
+}
+.ttt-bottom {
+    border-top: 4px solid #33cc00;
+}
+.ttt-left {
+    border-right: 4px solid #33cc00;
+}
+.ttt-center {
+    border-right: 4px solid #33cc00;
+    border-left: 4px solid #33cc00;
+    
+}
+.ttt-right {
+    border-left: 4px solid #33cc00;
+}
+
+#art {
+    position: absolute;
+    left: 600px;
+    top: 0px;
+    color: red;
+    z-index: 4;
+}
+
