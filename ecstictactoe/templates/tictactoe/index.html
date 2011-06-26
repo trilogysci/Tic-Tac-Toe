@@ -42,7 +42,9 @@ cellpadding="2" cellspacing="0">
 {% endfor %}
 </tbody>
 </table>
+{% if message %}
 <q>{{message}}</q>
+{% endif %}
 {% if not play.winner %}
 </form>
 <form Target="_self" EncType="application/x-www-form-urlencoded"
