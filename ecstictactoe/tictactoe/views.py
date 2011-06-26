@@ -7,11 +7,36 @@ import game
 import random
 from ascii import ascii
 
-messages = {'':['base message'],
-            'X':['X message'],
-            'O':['O message'],
-            'Draw':['Draw message'],
-            }
+
+messages={'':['Is that the best you can do?',
+            'I will eat you up and spit you out like so many CPU cycles.',
+            'Artificial Intelligence usually beats natural stupidity.',
+            'Why do we want intelligent terminals when there are so many stupid users?',
+            'Any fool can use a computer. Many do.',
+            'To iterate is human, to recurse divine.',
+            ],
+          'O':['You may have won the battle but you will never win the war.'],
+          'X':["War is a game that is played with a smile. If you can't smile, grin. If you can't grin, keep out of the way till you can.",
+          "War is a game that is played with a smile. If you can't smile, grin. If you can't grin, keep out of the way till you can.",
+            "It's not so important who starts the game but who finishes it.",
+            "The man who has no problems is out of the game.",
+            "Winners build on mistakes. Losers dwell on them.",
+            "I am too positive to be doubtful. Too optimistic to be fearful. And too determined to be defeated.  ",
+            "The wise learn many things from their enemies.  ",
+            "criticize me when you reach my level, meanwhile, ADMIRE me ;)",
+            "Global competition is about winners and losers. "
+            "People are useless.  They can only give you questions.",
+            "It's ridiculous to live 100 years and only be able to remember 30 million bytes.  You know, less than a compact disc.  The human condition is really becoming more obsolete every minute.",
+            "All Hail Lambda the Ultimate",
+            "Functional programming is like describing your problem to a mathematician. Imperative programming is like giving instructions to an idiot."
+                ],
+          'Draw':['If Python is executable pseudocode, then perl is executable line noise',
+            "I'm not anti-social; I'm just not user friendly",
+            "The world is coming to an end... SAVE YOUR BUFFERS !",
+            "They have computers, and they may have other weapons of mass destruction."
+                ],
+          }
+
 def gameView(request):
     'Tic Tac Toe game, shows board'
     # play is the current 
