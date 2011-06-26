@@ -2,6 +2,7 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.core.context_processors import csrf
 import json
 import game
 import random
@@ -37,71 +38,119 @@ messages={'':['Is that the best you can do?',
                 ],
           }
 
+def board2str(board):
+    ss=['_']*9
+    for i in range(9):
+        row = i/3
+        col = i%3
+        if board[row][col] == '_':
+            pass
+        elif board[row][col] == 'X':
+            ss[i] = 'X'
+        elif board[row][col] == 'O':
+            ss[i] = 'O'
+    return ''.join(ss)
+    
+def str2board(s):
+    board = [['','',''],['','',''],['','','']]
+    if len(s) == 9:
+        for i in range(9):
+            row = i/3
+            col = i%3
+            if s[i] == '_':
+                board[row][col] = ''
+            elif s[i] == 'X':
+                board[row][col] = 'X'
+            elif s[i] == 'O':
+                board[row][col] = 'O'
+    return board
+
+def getData(request):
+    'support either GET or POST'
+    if request.method == 'GET':
+        return request.GET
+    elif request.method == 'POST':
+        return request.POST
+    return None
+    
 def gameView(request):
     'Tic Tac Toe game, shows board'
     # play is the current 
-    play={'board':[['','',''],['','',''],['','','']],
+    play = {'board':[['','',''],['','',''],['','','']],
         'winner':'',
         'status':'',
         }
-    art=''
-    message=""
-    if (request.method == 'GET'):
-        # no ajax support
-        if('board' in request.GET):
-            board=request.GET['board']
-            if(len(board)==9):
-                for i in range(9):
-                    row = i/3
-                    col = i%3
-                    if(board[i]=='_'):
-                        play['board'][row][col] = ''
-                    elif(board[i]=='X'):
-                        play['board'][row][col] = 'X'
-                    elif(board[i]=='O'):
-                        play['board'][row][col] = 'O'                    
-            if('cell' in request.GET):
-                cell=request.GET['cell']
-                row=int(cell[0])
-                col=int(cell[1])
-                play['cell']=(row,col)
-                if(row>=0 and row<3 and col>=0 and col<3):
-                     if(play['board'][row][col]==''):
+    art = ''
+    message = ""
+    data = getData(request)
+    if data:
+        
+        if 'board' in data:
+            # if ajax is not supported
+            board = data['board']
+            play['board'] = str2board(board)
+            if 'cell' in data:
+                cell = data['cell']
+                row = int(cell[0])
+                col = int(cell[1])
+                play['cell'] = (row,col)
+                if row>=0 and row<3 and col>=0 and col<3:
+                     if play['board'][row][col] == '':
                         play['board'][row][col] = 'O'
                         play['key']=2323
-                        if (game.TicTacToe.isValidBoard(play)):
-                            gamemdl=game.TicTacToe(play)
+                        if game.TicTacToe.isValidBoard(play):
+                            gamemdl = game.TicTacToe(play)
                             gamemdl.move()
-                            play=gamemdl.getPlay()
+                            play = gamemdl.getPlay()
                             # message from computer
-                            if(play['winner'] in messages):
-                                message=random.choice(messages[play['winner']]);
+                            if play['winner'] in messages:
+                                message = random.choice(messages[play['winner']]);
                             else:
-                                message=random.choice(messages['']);
-                            if(play['winner']=='X'):
-                                art=random.choice(ascii)
+                                message = random.choice(messages['']);
+                            if play['winner'] == 'X':
+                                art = random.choice(ascii)
                             else:
-                                art='';
-    status=str(play)
+                                art = '';
+    status = str(play)
     #simplified board
-    board=''.join(['_' if x=='' else x for x in  play['board'][0]]+
+
+    board = ''.join(['_' if x=='' else x for x in  play['board'][0]]+
         ['_' if x=='' else x  for x in play['board'][1]]+
         ['_' if x=='' else x for x in  play['board'][2]])
-    return render_to_response('tictactoe/index.html', {'play': play,'board':board,'gameurl':reverse(gameView),'status':status, 'message':message, 'art':art})
+    lookup = {'play': play,'board':board,'gameurl':reverse(gameView),'status':status, 'message':message, 'art':art}
+    lookup.update(csrf(request))
+    return render_to_response('tictactoe/index.html', lookup)
+
     
 def getmove(request):
     'tic tac toe get computer move json'
-    if (request.is_ajax()):
+    if request.is_ajax():
         try:
-            play=json.loads('{}')
-            if (1): # is valid
+            play = {}
+            data = getData(request)
+            if data:
+                if 'board' in data:
+                    play['board'] = str2board(data['board'])
+                if 'cell' in data:
+                    cell = data['cell']
+                    row = int(cell[0])
+                    col = int(cell[1])
+                    if row>=0 and row<3 and col>=0 and col<3:
+                         if play['board'][row][col] == '':
+                            play['board'][row][col] = 'O'
+                play['key']=2323
+            if game.TicTacToe.isValidBoard(play): # is valid
+                gamemdl = game.TicTacToe(play)
+                gamemdl.move()
+                play = gamemdl.getPlay()
                 #generate computer move
                 #dump move
-                jsonPlay=json.dumps(play)
+                play['board']=board2str(play['board'])
+                jsonPlay = json.dumps(play)
             else:
-                jsonPlay=json.dumps({'error':'Connection failed'})
+                jsonPlay = json.dumps({'error':'Invalid play'})
         except:
-            jsonPlay=json.dumps({'error':'Connection failed'})
+            jsonPlay = json.dumps({'error':'Connection failed'})
         return HttpResponse(jsonPlay,'application/json')
     else:
         return HttpResponseRedirect('/')

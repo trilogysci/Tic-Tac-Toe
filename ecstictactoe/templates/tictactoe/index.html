@@ -3,6 +3,7 @@
 <meta content="text/html; charset=ISO-8859-1"
 http-equiv="content-type" />
 <link rel="stylesheet" href="/static/default.css" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 <script type="text/javascript" src="/static/tictactoe.js"></script>
 <title>Tic Tac Toe</title>
 </head>
@@ -13,7 +14,7 @@ http-equiv="content-type" />
 <p>Press a button to select a square.</p>
 {% if not play.winner %}
 <form Target="_self" EncType="application/x-www-form-urlencoded"
-Method="GET" Action="{{gameurl}}" Name="Select">
+Method="POST" Action="{{gameurl}}" Name="Select">
 {% csrf_token %}
 <input name="board" value="{{board}}" type="hidden" />
 {% endif %}
@@ -25,13 +26,13 @@ cellpadding="2" cellspacing="0">
     <tr  class="{% cycle 'ttt-top' 'ttt-middle' 'ttt-bottom' as vertname %}">
     {% for cell in row %}
         <!-- Col = {% cycle '0' '1' '2' as colname %}-->
-        <td class="{{vertname}} {% cycle 'ttt-left' 'ttt-center' 'ttt-right' %}">
+        <td id="td{{rowname}}{{colname}}" class="{{vertname}} {% cycle 'ttt-left' 'ttt-center' 'ttt-right' %}">
         {% ifequal cell '' %}
             {% if play.winner %}
             &nbsp;
                 
             {% else %}
-            <button value="{{rowname}}{{colname}}" name="cell">O?</button>
+            <button  class="move" type="submit" value="{{rowname}}{{colname}}" name="cell">O?</button>
             {%endif %}
         {% else %}
             {{cell}}
