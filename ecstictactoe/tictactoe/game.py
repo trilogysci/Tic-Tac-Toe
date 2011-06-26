@@ -46,6 +46,10 @@ EMPTY = 'Empty' # board is empty
 ONCHECK = 'OnCheck' # Opponent has been check make winning move
 CHECKED = 'Checked' # Currently Checked
 UNKNOWN = 'Unknown' # unknown status
+PATTERNMATCH = 'PatternMatch' # PatternMatch
+LEADINGMOVE = 'LeadingMove' # Move second in a row
+CENTERMOVE = 'CenterMove' # Center Move is usually good
+ANYMOVE = 'AnyMove' #AnyMove
 class TicTacToe:
     'computer is X, player is O'
     def __init__(self, play=None):
@@ -156,7 +160,8 @@ class TicTacToe:
                 if self.board[irow][icell] == '':
                     self.board[irow][icell] = 'X'
                     return
-        raise "anyMove failed to find emty cell"
+        print self
+        raise "anyMove failed to find empty cell"
     
     def checkMove(self):
         'perform winning move'
@@ -198,7 +203,8 @@ class TicTacToe:
                         self.board[2][0]='X'
                         self.winner='X'
                 return
-        #
+        print self
+        raise "checkMove: failed to find empty cell"
         
     def blockMove(self):
         'perform a block move'
@@ -234,6 +240,46 @@ class TicTacToe:
                         self.board[2][0]='X'
                 return
         # should not get here
+
+    def leadingMove(self):
+        ''' attempt to Perform leading Move
+            return True on success
+        '''
+        # find empty cell within the axis
+        # with no 'O' and 1 'X'
+        for iaxis,cnts in enumerate(self.rowCounts):
+            if cnts == {'X':1,'O':0}:
+                for icell in range(3):
+                    if self.board[iaxis][icell] == '':
+                        self.board[iaxis][icell] = 'X'
+                        return True
+        for iaxis,cnts in enumerate(self.colCounts):
+            if cnts == {'X':1,'O':0}:
+                for icell in range(3):
+                    if self.board[icell][iaxis] == '':
+                        self.board[icell][iaxis] = 'X'
+                        return True
+        
+        for iaxis,cnts in enumerate(self.diagCounts):
+            if cnts == {'X':1,'O':0}:
+                if self.board[1][1] == '':
+                    self.board[1][1] = 'X'
+                    return True
+                elif iaxis == 0:
+                    if self.board[0][0] == '':
+                        self.board[0][0] = 'X'
+                        return True
+                    elif self.board[2][2] == '':
+                        self.board[2][2] = 'X'
+                        return True
+                else:
+                    if self.board[0][2] == '':
+                        self.board[0][2]='X'
+                        return True
+                    elif self.board[2][0] == '':
+                        self.board[2][0]='X'
+                        return True
+        return False
                             
     def calcCounts(self):
         'compute data counts'
@@ -284,22 +330,25 @@ class TicTacToe:
         elif maxes['O'] == 3:
             self.winner = 'O'
             self.status = DONE
+        elif self.emptyCount == 0:
+            self.status = DONE
+            self.winner = 'Draw'
         elif maxes['X'] == 2:
             self.status = ONCHECK
         elif maxes['O'] == 2:
             self.status = CHECKED
-        elif self.emptyCount == 0:
+        elif self.emptyCount == 9:
             self.status = EMPTY
         elif self.emptyCount == 1:
             self.status = FINAL
-        
-        
         
     def move(self):
         '''perform computer move'''
         self.updateStatus()
                 
-        if self.status == EMPTY:
+        if self.status == DONE:
+            pass
+        elif self.status == EMPTY:
             self.anyMove()
         elif self.status == FINAL:
             self.anyMove()
@@ -307,8 +356,37 @@ class TicTacToe:
             self.checkMove()
         elif self.status == CHECKED:
             self.blockMove()
+        elif (self.board[1][1] == ''):
+            #empty center is usually good
+            self.status = CENTERMOVE
+            self.board[1][1] = 'X'
         else:
-            self.anyMove()
+            found=False
+            for pattern,cellix in [
+                        ([['O','',''],['','X',''],['','O','']], (2,0)),
+                        ([['O','',''],['','X',''],['','','O']], (1,0)),
+                        ([['O','',''],['','O',''],['','','X']], (2,0)),
+                        ([['','O',''],['O','X',''],['','','']], (0,0)),
+                        ([['O','X',''],['','X','O'],['','O','']], (2,0)),
+                        ([['X','O',''],['','','O'],['','','']], (1,0)),
+                        ([['X','O',''],['O','','X'],['','','O']], (2,0)),
+                        ([['O','X',''],['X','','O'],['','O','']], (2,2)),
+                        ]:
+                match=self.matchPattern(pattern)
+                if(match!=None):
+                    self.status=PATTERNMATCH
+                    cellix_out= self.transIndex(match, cellix)
+                    assert self.board[cellix_out[0]][cellix_out[1]] == ''
+                    self.board[cellix_out[0]][cellix_out[1]]='X'
+                    found=True
+            if found:
+                pass
+            elif self.leadingMove():
+                self.status = LEADINGMOVE
+                pass
+            else:
+                self.status = ANYMOVE
+                self.anyMove()
         # update counts
         self.calcCounts()
 
