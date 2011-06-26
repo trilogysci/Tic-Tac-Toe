@@ -55,9 +55,9 @@ class TicTacToe:
     def __init__(self, play=None):
         self.status = ''
         self.winner = ''
-        self.board=[['','',''],['','',''],['','','']]
+        self.board = [['','',''],['','',''],['','','']]
         if play and self.isValidBoard(play)[0]:
-            self.board=copy.deepcopy(play['board'])
+            self.board = copy.deepcopy(play['board'])
             self.calcCounts()
         
     @staticmethod
@@ -83,7 +83,7 @@ class TicTacToe:
                     if cell == 'O':
                         ocount += 1
             # move count must be valid
-            if(ocount-xcount>1 or ocount-xcount<0):
+            if ocount-xcount>1 or ocount-xcount<0:
                 return False, 'Can not have a double move'
             if play['key'] != 2323:
                 return False, 'incomplete message'
@@ -103,14 +103,14 @@ class TicTacToe:
         'does the pattern match, after rotations and flips'
         rpatt=pattern
         for i in range(4):
-            if rpatt==self.board:
+            if rpatt == self.board:
                 return i
-            rpatt=boardRotate(rpatt)
-        rpatt=boardFlip(pattern)
+            rpatt = boardRotate(rpatt)
+        rpatt = boardFlip(pattern)
         for i in range(4):
-            if rpatt==self.board:
+            if rpatt == self.board:
                 return i+4
-            rpatt=boardRotate(rpatt)
+            rpatt = boardRotate(rpatt)
         return None
 
     @staticmethod
@@ -122,7 +122,7 @@ class TicTacToe:
         if trans>=4:
             #flip
             cellix_out = (cellix_out[1],cellix_out[0])
-            trans=trans-4
+            trans = trans-4
         corners=[(0,0),(2,0),(2,2),(0,2)]
         sides=[(0,1),(1,0),(2,1),(1,2)]
         #rotate
@@ -133,7 +133,7 @@ class TicTacToe:
         elif cellix_out in sides:
             # get location and apply rotation
             idx=(sides.index(cellix_out)-trans)%4
-            cellix_out=sides[idx]
+            cellix_out = sides[idx]
         return cellix_out
     def getFreeCnt(self):
         'return number of empty cells'
@@ -141,17 +141,17 @@ class TicTacToe:
     
     def testUserMove(self, ifree):
         'generate a user move based on index of empty cells'
-        if (ifree<0 or ifree>=self.emptyCount):
+        if ifree<0 or ifree>=self.emptyCount:
             raise ValueError('Invalid ifree %d'%ifree)
         iLoc = 0
         for irow in range(3):
             for icell in range(3):
-                if (self.board[irow][icell]==''):
-                    if (ifree==iLoc):
-                        self.board[irow][icell]='O'
+                if self.board[irow][icell]=='':
+                    if ifree == iLoc:
+                        self.board[irow][icell] = 'O'
                         return
                     else:
-                        iLoc+=1
+                        iLoc += 1
         self.calcCounts()
     def anyMove(self):
         ''' perform any move'''
@@ -172,7 +172,7 @@ class TicTacToe:
                 for icell in range(3):
                     if self.board[iaxis][icell] == '':
                         self.board[iaxis][icell] = 'X'
-                        self.winner='X'
+                        self.winner = 'X'
                         break
                 return 
         for iaxis,cnts in enumerate(self.colCounts):
@@ -180,28 +180,28 @@ class TicTacToe:
                 for icell in range(3):
                     if self.board[icell][iaxis] == '':
                         self.board[icell][iaxis] = 'X'
-                        self.winner='X'
+                        self.winner = 'X'
                         break
                 return
         for iaxis,cnts in enumerate(self.diagCounts):
             if cnts == {'X':2,'O':0}:
                 if self.board[1][1] == '':
-                    self.board[1][1]='X'
-                    self.winner='X'
+                    self.board[1][1] = 'X'
+                    self.winner = 'X'
                 elif iaxis == 0:
                     if self.board[0][0] == '':
                         self.board[0][0] = 'X'
-                        self.winner='X'
+                        self.winner = 'X'
                     elif self.board[2][2] == '':
                         self.board[2][2] = 'X'
-                        self.winner='X'
+                        self.winner = 'X'
                 else:
                     if self.board[0][2] == '':
-                        self.board[0][2]='X'
-                        self.winner='X'
+                        self.board[0][2] = 'X'
+                        self.winner = 'X'
                     elif self.board[2][0] == '':
-                        self.board[2][0]='X'
-                        self.winner='X'
+                        self.board[2][0] = 'X'
+                        self.winner = 'X'
                 return
         print self
         raise "checkMove: failed to find empty cell"
@@ -235,9 +235,9 @@ class TicTacToe:
                         self.board[2][2] = 'X'
                 else:
                     if self.board[0][2] == '':
-                        self.board[0][2]='X'
+                        self.board[0][2] = 'X'
                     elif self.board[2][0] == '':
-                        self.board[2][0]='X'
+                        self.board[2][0] = 'X'
                 return
         # should not get here
 
@@ -274,10 +274,10 @@ class TicTacToe:
                         return True
                 else:
                     if self.board[0][2] == '':
-                        self.board[0][2]='X'
+                        self.board[0][2] = 'X'
                         return True
                     elif self.board[2][0] == '':
-                        self.board[2][0]='X'
+                        self.board[2][0] = 'X'
                         return True
         return False
                             
@@ -377,7 +377,7 @@ class TicTacToe:
                     self.status=PATTERNMATCH
                     cellix_out= self.transIndex(match, cellix)
                     assert self.board[cellix_out[0]][cellix_out[1]] == ''
-                    self.board[cellix_out[0]][cellix_out[1]]='X'
+                    self.board[cellix_out[0]][cellix_out[1]] = 'X'
                     found=True
             if found:
                 pass
